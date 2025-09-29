@@ -7,6 +7,10 @@ import java.net.URISyntaxException;
 import static org.dador.paddingOracleClient.HexConverters.*;
 
 /**
+ *  Longaing Guy Arnaud & Babindama Ange
+ */
+
+/**
  * Main Class for Padding OracleClient
  */
 public class OraclePaddingClient {
@@ -24,9 +28,9 @@ public class OraclePaddingClient {
     protected byte[] buildPaddingArray(int n) {
         byte[] result = new byte[BLOCK_SIZE];
 
-        /**
-         * TODO : Your CODE HERE
-         */
+        for (int i=BLOCK_SIZE - n; i < BLOCK_SIZE; i++){
+            result[i] = (byte) n;
+        }
         return result;
     }
 
@@ -43,10 +47,18 @@ public class OraclePaddingClient {
      */
     protected byte[] buildGuessForPosition(byte[] iv, byte[] decoded, int position, byte guess) {
         byte[] result = new byte[BLOCK_SIZE];
+        int paddingVal = BLOCK_SIZE - position;
+        byte [] padding = buildPaddingArray(paddingVal);
 
-        /**
-         * TODO : YOUR CODE HERE
-         */
+        for (int i=0; i<BLOCK_SIZE; i++){
+
+            if (i==position) {
+                result[i] = (byte) (iv[i] ^decoded[i] ^guess ^padding[i]);
+            }
+            else {
+                result[i] = (byte) (iv[i] ^decoded[i] ^padding[i]);
+            }
+        }
 
         return result;
     }
@@ -63,10 +75,15 @@ public class OraclePaddingClient {
      * @throws URISyntaxException
      */
     public int getPaddingLengthForLastBlock(PaddingOracleQuery poq, byte[] previousbloc, byte[] lastbloc) throws IOException, URISyntaxException {
-        /**
-         * TODO : Your Code HERE
-         */
-        // should not arrive here !
+        for (int padLen = 1; padLen <= BLOCK_SIZE; padLen++) {
+            byte[] modified = previousbloc.clone();
+
+            modified[BLOCK_SIZE - padLen] ^= 0x01;
+            String query = toHexFromByteArray(modified) + toHexFromByteArray(lastbloc);
+            if (poq.query(query)) {
+                return padLen;
+            }
+        }
         return 0;
     }
 
@@ -86,9 +103,12 @@ public class OraclePaddingClient {
 
         byte[][] result = new byte[blocNumber][BLOCK_SIZE];
 
-        /*
-        TODO : YOUR CODE HERE
-         */
+
+        for ( int i=0; i<blocNumber; i++){
+            for (int j=0; j<BLOCK_SIZE; j++){
+                result [i][j] = message [i * BLOCK_SIZE + j];
+            }
+        }
         return result;
     }
 
@@ -163,8 +183,8 @@ public class OraclePaddingClient {
             String hexresult = "";
             int padlen;
 
-            //for (int i = 0; i < messageblocks.length - 1; i++) {
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < messageblocks.length - 1; i++) {
+            // (int i = 0; i < 1; i++) {
 
                 if (i == messageblocks.length - 2) {
                     System.out.print("Decodage du dernier bloc : calcul du padding");
